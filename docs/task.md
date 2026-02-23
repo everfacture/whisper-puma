@@ -1,0 +1,4 @@
+- [x] Use Firecrawl to search for benchmarks/comparisons of Llama 3.2 3B vs Qwen 2.5 3B/1.5B for grammar and context understanding (Llama 3.2 3B slightly edges out Qwen for strict grammar/acceptability)
+- [x] Read the workspace rules
+- [x] Incorporate the chosen LLM and workspace rules into the spec
+- [ ] Build the local Whisper Puma alternative
