@@ -3,7 +3,8 @@
 A beautiful, native macOS application for unlimited, **100% local** voice dictation. Whisper Puma is optimized for the Apple Silicon era, bringing state-of-the-art transcription to your menu bar with zero latency and absolute privacy.
 
 > [!IMPORTANT]
-> **v1.0.9 "Code Hygiene"**: This release focuses on "Native Excellence"—adopting standards for clean, optimal, and efficient code. We've restructured the project, eliminated hardcoded strings, and professionalized our build automation.
+> **v1.0.9 "Architecture & Stability"**: This release focuses on "Native Excellence"—adopting standards for clean, optimal, and efficient code. We've restructured the project, eliminated hardcoded strings, and professionalized our build automation.
+
 
 
 ## ✨ Features

@@ -7,7 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.9] - 2026-02-24
 ### Added
-- **Project Hygiene**: Restructured repository into `scripts/`, `build/`, and `logs/` folders.
+- **Architecture & Stability**: Restructured repository into `scripts/`, `build/`, and `logs/` folders.
+
 - **Puma Pulse HUD**: Real-time native visual feedback during recording.
 - **Native Hotkey Recorder**: Global hotkey customization in the Settings window.
 - **Centralized Constants**: Switched to `Constants.swift` for unified app configuration.
