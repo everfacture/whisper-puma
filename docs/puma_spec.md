@@ -14,17 +14,11 @@ To achieve "local Wispr Flow" functionality, the system needs four continuous ba
 - **Flow**: User holds `fn` -> Silero VAD detects speech -> Records chunks of audio to RAM/tmp -> User releases `fn` (or VAD detects silence for 1 second) -> Audio passed to STT.
 - **Audio Privacy**: Audio is buffered in RAM or a `/tmp` file that is instantly deleted after transcription. No audio files are saved permanently to your disk unless you enable a debug mode.
 
-### Transcription Engine (Speech-to-Text)
-- **Role**: Convert the raw audio buffer into incredibly fast, raw text.
-- **Tools**: `whisper.cpp` (highly optimized for Apple Silicon Metal) or Apple's MLX Whisper.
-- **Models**: For a **British Accent**, `distil-whisper-large-v3` running quantized is the best choice. It handles accents significantly better than the smaller "base" models while running up to 6x faster than standard large models.
-- **Flow**: Reads temporary audio buffer -> Outputs raw transcript (e.g., *"uh yeah so loop through the array and print the thing"*).
-
-### LLM Processing Engine (Formatting & Command Mode)
-- **Role**: The "magic" layer. Takes the raw, messy transcript and formats it intelligently based on the active application, or executes a vocal command.
-- **Tools**: Ollama running locally in the background. **Note: This is 100% offline.** The "server" runs on your own machine (`127.0.0.1`) and does not require an internet connection, perfectly safe for offline note-taking.
-- **Models**: **`llama3.2:3b`**. Recent 2025 benchmarks (like Steer-Bench and Code-Mixed Acceptability studies) show that while Qwen 2.5 3B is excellent for pure coding, **Llama 3.2 3B** edges it out slightly for strict grammar acceptability and context-aware formatting in mixed-language tasks. It is incredibly fast and lightweight.
-- **Flow**: Reads raw text -> Prompts LLM: *"Clean this up for a [Code Editor/Slack message]: 'uh yeah so loop through the array...'"* -> Outputs refined text: `for item in array: print(item)`
+### Transcription & Formatting Engine (MLX)
+- **Role**: The core engine. Converts audio directly into high-fidelity, formatted text.
+- **Tools**: **MLX Whisper** (Apple's dedicated machine learning framework).
+- **Models**: **`mlx-community/whisper-large-v3-turbo`**. This model provides the perfect balance: the accuracy of a large model with the speed of a tiny one. It handles British accents and basic punctuation natively, eliminating the need for a secondary LLM layer.
+- **Flow**: Reads absolute-path local cache -> Forced Greedy Decoding -> Direct output to UI.
 
 ### UI & System Integration
 - **Role**: Minimal, invisible background operation with robust error handling.

@@ -5,7 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.9] - 2026-02-24
+### Added
+- **Project Hygiene**: Restructured repository into `scripts/`, `build/`, and `logs/` folders.
+- **Puma Pulse HUD**: Real-time native visual feedback during recording.
+- **Native Hotkey Recorder**: Global hotkey customization in the Settings window.
+- **Centralized Constants**: Switched to `Constants.swift` for unified app configuration.
+
+### Changed
+- **The Great Pivot**: Standardized on `mlx-community/whisper-large-v3-turbo` for high-speed, accurate British English transcription.
+- **Offline Perfection**: Implemented absolute-path model loading to bypass all cloud checks.
+- **Greedy Decoding**: Enforced `beam_size=1` for maximum stability and no hallucinations.
+- **Native Process Management**: Swift backend orchestration now uses native `Process` execution instead of shell wrappers.
+
+### Fixed
+- Resolved "Empty Backend" issue caused by `mlx-whisper` API misuse.
+- Fixed infinite word-repetition loops with optimized decoding parameters.
+- Cleaned up root directory from build artifacts and logs.
+
+### Technical
+- Updated `.gitignore` for professional macOS/Xcode/Python development.
+- Purged legacy Ollama/Llama dependencies.
+
 ## [0.9.0] - 2026-02-24
+
 ### Added
 - **Native macOS Menu Bar App**: A standalone Swift application (`PumaMenuBarApp`) that handles global `fn` key hooks and audio capture.
 - **Python Backend Daemon**: A persistent HTTP backend that orchestrates the STT pipeline using MLX.

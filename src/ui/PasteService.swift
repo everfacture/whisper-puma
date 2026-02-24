@@ -54,33 +54,11 @@ class PasteService {
             
             keyDown.post(tap: .cghidEventTap)
             keyUp.post(tap: .cghidEventTap)
-            logger.info("Attempted CGEvent hardware paste targeting \(appName)")
+            logger.success("✅ Completed paste simulation for '\(text)' via hardware keystroke.")
         }
-        
-        // Wait a tiny bit, then forcefully try a secondary targeted AppleScript
-        // This acts as a backup in case the application ignored the hardware-level fake keystroke
-        Thread.sleep(forTimeInterval: 0.1)
-        
-        let scriptSource = """
-        tell application "System Events"
-            tell process "\(appName)"
-                set frontmost to true
-                keystroke "v" using command down
-            end tell
-        end tell
-        """
-        
-        if let script = NSAppleScript(source: scriptSource) {
-            var errorInfo: NSDictionary?
-            script.executeAndReturnError(&errorInfo)
-            
-            if let error = errorInfo {
-                logger.warning("AppleScript backup paste failed: \(error)")
-            } else {
-                logger.info("Executed AppleScript backup paste targeting \(appName).")
-            }
-        }
-        
-        logger.success("Completed paste simulation for '\(text)'!")
     }
 }
+
+
+
+

@@ -1,6 +1,6 @@
 import os
 import json
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import HTTPServer, BaseHTTPRequestHandler, ThreadingHTTPServer
 from audio_service import AudioService
 from logger_service import LoggerService
 
@@ -8,6 +8,13 @@ class DaemonHandler(BaseHTTPRequestHandler):
     # These must be injected onto the class or server instance beforehand
     audio_service: AudioService = None
     logger: LoggerService = None
+
+    def do_GET(self):
+        if self.path == '/models':
+            models = self.audio_service.get_available_models()
+            self._send_success_response({"status": "success", "models": models})
+        else:
+            self.send_error(404, "Not Found")
 
     def do_POST(self):
         if self.path == '/transcribe':
@@ -27,9 +34,12 @@ class DaemonHandler(BaseHTTPRequestHandler):
                 self.send_error(400, "Invalid file path")
                 return
 
+            # Note: Transcription is still locked inside audio_service for safety, 
+            # but ThreadingHTTPServer allows other requests (like /models) to come through.
             final_text = self.audio_service.transcribe_audio(file_path)
             self._send_success_response({"status": "success", "text": final_text})
-            
+
+
         except Exception as e:
             self.logger.error(f"Error handling request: {e}")
             self.send_error(500, str(e))
@@ -52,10 +62,11 @@ class ServerService:
 
     def start(self):
         server_address = ('127.0.0.1', self.port)
-        httpd = HTTPServer(server_address, DaemonHandler)
-        self.logger.info(f"Whisper Puma Daemon running on http://127.0.0.1:{self.port}...")
+        httpd = ThreadingHTTPServer(server_address, DaemonHandler)
+        self.logger.info(f"Whisper Puma Daemon (Multi-threaded) running on http://127.0.0.1:{self.port}...")
         try:
             httpd.serve_forever()
+
         except KeyboardInterrupt:
             pass
         httpd.server_close()

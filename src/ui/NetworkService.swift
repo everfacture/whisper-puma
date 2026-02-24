@@ -7,12 +7,15 @@ protocol NetworkDelegate: AnyObject {
 }
 
 class NetworkService {
+    static let shared = NetworkService(logger: LoggerService.shared)
+    
     weak var delegate: NetworkDelegate?
     private let logger: LoggerService
     
     init(logger: LoggerService) {
         self.logger = logger
     }
+
     
     func sendForTranscription(fileURL: URL, targetApp: NSRunningApplication?) {
         guard let url = URL(string: "http://127.0.0.1:8111/transcribe") else { return }
@@ -22,6 +25,8 @@ class NetworkService {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         let payload = ["file": fileURL.path]
+
+
         request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
         
         // Use a custom session with a 5-minute timeout to allow the initial 1.5GB model download
@@ -43,7 +48,34 @@ class NetworkService {
         task.resume()
     }
     
+    func fetchAvailableModels(completion: @escaping ([String]) -> Void) {
+        guard let url = URL(string: "http://127.0.0.1:8111/models") else {
+            completion([])
+            return
+        }
+        
+        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+            guard let data = data, error == nil else {
+                completion([])
+                return
+            }
+            
+            do {
+                if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let models = json["models"] as? [String] {
+                    completion(models)
+                } else {
+                    completion([])
+                }
+            } catch {
+                completion([])
+            }
+        }
+        task.resume()
+    }
+
     private func parseTranscriptionResponse(data: Data, targetApp: NSRunningApplication?) {
+
         do {
             if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
                 if let text = json["text"] as? String, !text.isEmpty {

@@ -1,72 +1,75 @@
-# 🐆 Whisper Puma v0.9
+# 🐆 Whisper Puma v1.0.9
 
-A beautiful, native macOS menu bar application for unlimited, 100% local voice dictation. Powered by `mlx-whisper` for blazing-fast performance on Apple Silicon.
+A beautiful, native macOS application for unlimited, **100% local** voice dictation. Whisper Puma is optimized for the Apple Silicon era, bringing state-of-the-art transcription to your menu bar with zero latency and absolute privacy.
+
+> [!IMPORTANT]
+> **v1.0.9 "Code Hygiene"**: This release focuses on "Native Excellence"—adopting standards for clean, optimal, and efficient code. We've restructured the project, eliminated hardcoded strings, and professionalized our build automation.
+
 
 ## ✨ Features
 
-- **🎙️ Global Dictation** — One-tap high-quality transcription from any application.
-- **⚡ Supercharged by MLX** — Uses Apple's MLX framework for state-of-the-art performance on Metal.
-- **🎯 Elite Accuracy** — Defaults to `distil-whisper-large-v3` for professional-grade accuracy and accent handling.
-- **🔐 100% Private & Offline** — No audio or text ever leaves your machine. No cloud, no API keys, no tracking.
-- **⌨️ Seamless Insertion** — Automatically types transcribed text directly into your active window.
-- **🌓 Native UI** — Lightweight system-integrated menu bar app with dark mode support.
-- **📜 Thought Log** — Automatically saves a local history of your dictations in `~/.whisper_puma_history.log`.
+- **🎙️ Global Dictation** — Trigger high-quality transcription anywhere in macOS with a single keypress.
+- **⚡ "Puma Speed" Engine** — Powered by `mlx-whisper` and the `Large-v3-Turbo` model for blazing-fast performance on Metal.
+- **🇬🇧 Gold Standard Accuracy** — Hardcoded "Greedy Decoding" parameters for rock-solid stability, specially tuned for British accents.
+- **🔐 100% Local-First** — Explicitly enforces offline mode. No audio or text ever leaves your machine—no cloud, no API keys, no tracking.
+- **📟 Puma Pulse HUD** — Real-time visual feedback via a sleek, native HUD that pulses as you speak.
+- **⌨️ Custom Hotkey Recorder** — Fully customizable global triggers via a native Swift hotkey recorder.
+- **✂️ Smash-Proof Deduplication** — Intelligent algorithms that detect and eliminate recurring duplication errors.
+- **🌓 Native Design** — Modern, glassmorphic Settings window with dark mode support.
+
+## 📋 Prerequisites & Requirements
+
+- **macOS 14.0** (Sonoma) or later.
+- **Apple Silicon (M1, M2, M3, M4)** — Required for MLX performance.
+- **Python 3.9+** installed and available in your `PATH`.
+- **ffmpeg** installed (for audio processing).
 
 ## 🚀 Quick Start
 
-1. **Clone the repository:**
+1. **Clone & Enter:**
    ```bash
    git clone https://github.com/everfacture/whisper-puma.git
    cd whisper-puma
    ```
 
-2. **Install Backend Dependencies:**
+2. **Backend Setup:**
    ```bash
    pip install -r src/backend/requirements.txt
    ```
 
-3. **Build & Run the App:**
+3. **Build the App:**
    ```bash
-   ./src/ui/build_app.sh
-   open src/ui/WhisperPuma.app
+   ./scripts/build_app.sh
    ```
 
-4. **Permissions:**
-   Grant Microphone and Accessibility permissions when prompted. The app uses the **Function (fn)** key by default.
+4. **Launch:**
+   ```bash
+   open build/WhisperPuma.app
+   ```
+   > [!IMPORTANT]
+   > **Permissions Check**: On your first launch, macOS will request **Microphone** and **Accessibility** access. You MUST grant these for global hotkeys and text insertion to work.
 
-## 🏗️ Architecture
+## 🗺️ Roadmap & Future Improvements
 
-Whisper Puma uses a decoupled architecture to ensure the UI remains responsive while the heavy lifting happens in the background.
+### 🐆 Short Term (v1.1)
+- **4-bit Quantization**: Support for quantized MLX models for even lower memory footprint and faster startups.
+- **Smart Punctuation**: Enhanced NLP logic for better sentence structuring in long dictations.
+- **Tray Animations**: Smooth, high-refresh rate animations for the menu bar icon.
 
-- **Frontend (Swift 6)**: A native AppKit application that handles global hotkeys, high-fidelity audio recording, and UI feedback.
-- **Backend (Python 3.12/MLX)**: A local HTTP daemon that manages the `distil-whisper-large-v3` model and processes audio buffers via the Metal GPU.
-- **Pasting Engine**: A multi-layered system using `CGEvent` and AppleScript to ensure reliable text injection across different macOS sandboxes.
+### 🧠 Medium Term (v1.x)
+- **Context-Aware Formatting**: Auto-switch styles based on the active app (e.g., Markdown for Obsidian, Swift-friendly for Xcode).
+- **Voice Commands**: "New paragraph", "Delete last sentence", and "Capitalize that" commands.
+- **LLM Refinement**: Optional local Llama-3 integration for instant "Professional Polish".
 
-## 📋 Requirements
+### 🌐 Long Term
+- **Multi-Language Mastery**: Seamless switching between 99+ languages with zero config.
+- **Windows Puma**: Bringing the same local-first performance to Windows via ONNX/DirectML.
 
-- **macOS 14.0** (Sonoma) or later.
-- **Apple Silicon (M1, M2, M3, M4)** — Required for MLX performance.
-- Python 3.9+ installed.
+## 👨‍💻 Architecture & Hygiene
 
-## 🔐 Privacy & Security
+- **Repository Structure**: Following industry standards with dedicated `scripts/`, `build/`, and `logs/` directories.
+- **Native Excellence**: Optimized Swift process management and centralized `Constants.swift` to avoid magic strings and paths.
+- **100% Offline Enforcement**: Logic-level bypasses for Hugging Face Hub connectivity checks.
 
-- **Local Processing**: Audio transcription happens entirely on your GPU.
-- **No Analytics**: We don't collect, track, or phone home. Ever.
-- **Secure Handling**: Audio buffers are written to ephemeral storage (`/tmp/`) and overwritten immediately.
-
-## 🎉 Roadmap
-
-Whisper Puma is evolving. Here is what's coming next:
-
-- **⚙️ Settings Menu**: In-app UI for changing models and adjusting audio settings.
-- **⌨️ Key Customization**: Capability to remap the global trigger from `fn` to any preferred hotkey.
-- **🏎️ Performance +**: Support for 4-bit and 8-bit quantized models for even faster processing on base M1 chips.
-- **🪟 Windows Support**: Exploring a companion app for Windows using `whisper.cpp` or `faster-whisper`.
-- **✍️ Advanced Formatting**: Optional local LLM integration for punctuation and grammar correction via Ollama.
-
-## 👨‍💻 About
-
-Created with ❤️ to bring unrestricted, professional dictation to everyone.
-
+---
 *Voice is the new keyboard. 🐆*
-

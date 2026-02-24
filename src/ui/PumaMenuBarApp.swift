@@ -5,6 +5,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var isRecording = false
     
     var targetApp: NSRunningApplication?
+    var settingsWindow: SettingsWindowController?
+    let settings = AppSettings.shared
+
     
     // Core Services via DI
     let logger = LoggerService.shared
@@ -49,9 +52,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         
         let menu = NSMenu()
-        let settingsItem = NSMenuItem(title: "Settings (Coming Soon)", action: nil, keyEquivalent: "")
-        settingsItem.isEnabled = false
-        menu.addItem(settingsItem)
+        menu.addItem(NSMenuItem(title: "Settings...", action: #selector(showSettings), keyEquivalent: ","))
+        menu.addItem(NSMenuItem.separator())
         
         let historyItem = NSMenuItem(title: "View History", action: #selector(viewHistory), keyEquivalent: "")
         menu.addItem(historyItem)
@@ -63,6 +65,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem.menu = menu
     }
     
+    @objc private func showSettings() {
+        if settingsWindow == nil {
+            settingsWindow = SettingsWindowController()
+        }
+        settingsWindow?.showWindow(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
     @objc private func quitApp() {
         NSApplication.shared.terminate(self)
     }
@@ -83,33 +93,56 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 // MARK: - HotkeyDelegate
 extension AppDelegate: HotkeyDelegate {
     func onHotkeyPress() {
-        if !isRecording {
-            isRecording = true
-            
-            // Capture the active app BEFORE we show the HUD and steal focus
-            targetApp = NSWorkspace.shared.frontmostApplication
-            
-            playSound(name: "Submarine", volume: 0.2)
-            hudManager.showHUD()
-            
-            DispatchQueue.main.async {
-                self.statusItem.button?.title = "🔴"
+        logger.info("onHotkeyPress triggered in AppDelegate (isRecording: \(isRecording), mode: \(settings.recordingMode.rawValue))")
+        switch settings.recordingMode {
+        case .hold:
+            startRecordingSession()
+        case .toggle:
+            if isRecording {
+                stopRecordingSession()
+            } else {
+                startRecordingSession()
             }
-            audioService.startRecording()
+        case .doubleTap:
+            if !isRecording { startRecordingSession() }
         }
     }
     
     func onHotkeyRelease() {
-        if isRecording {
-            isRecording = false
-            playSound(name: "Pop", volume: 0.2)
-            hudManager.hideHUD()
-            
-            DispatchQueue.main.async {
-                self.statusItem.button?.title = "⏳"
-            }
-            audioService.stopRecording()
+        if settings.recordingMode == .hold {
+            logger.info("onHotkeyRelease triggered (stopping recording)")
+            stopRecordingSession()
         }
+    }
+
+    
+    private func startRecordingSession() {
+        guard !isRecording else { return }
+        isRecording = true
+        
+        // Capture the active app BEFORE we show the HUD and steal focus
+        targetApp = NSWorkspace.shared.frontmostApplication
+        
+        playSound(name: "Submarine", volume: 0.2)
+        hudManager.showHUD()
+        
+        DispatchQueue.main.async {
+            self.statusItem.button?.title = "🔴"
+        }
+        audioService.startRecording()
+    }
+    
+    private func stopRecordingSession() {
+        guard isRecording else { return }
+        isRecording = false
+        
+        playSound(name: "Pop", volume: 0.2)
+        hudManager.hideHUD()
+        
+        DispatchQueue.main.async {
+            self.statusItem.button?.title = "⏳"
+        }
+        audioService.stopRecording()
     }
 }
 

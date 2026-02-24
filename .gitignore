@@ -1,14 +1,21 @@
-# macOS
+# 🐆 Whisper Puma Hygiene
+
+# macOS System
 .DS_Store
 .AppleDouble
 .LSOverride
+Icon
 
-# Build Artifacts
-*.app/
-*.build/
-*.bin
-src/ui/WhisperPuma.app
-src/ui/build_error.log
+# Xcode
+build/
+DerivedData/
+*.xcworkspace
+*.moved-aside
+*.xcuserstate
+*.app
+*.build
+*.ipa
+*.pkg
 
 # Python
 __pycache__/
@@ -16,14 +23,20 @@ __pycache__/
 *$py.class
 venv/
 .env
+.python-version
+.pytest_cache/
 
-# Logs
-*.log
-backend.log
+# Whisper Puma Artifacts
+logs/*.log
+temp/*.wav
 /tmp/puma_dictation.wav
+scripts/*.log
 
-# Local Dev/Configuration
+# Project Specific
 .gemini/
 .agent/
 .agents/
-.DS_Store
+
+# Binary Artifacts
+*.bin
+*.model
