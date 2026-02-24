@@ -1,0 +1,29 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Build Artifacts
+*.app/
+*.build/
+*.bin
+src/ui/WhisperPuma.app
+src/ui/build_error.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Logs
+*.log
+backend.log
+/tmp/puma_dictation.wav
+
+# Local Dev/Configuration
+.gemini/
+.agent/
+.agents/
+.DS_Store

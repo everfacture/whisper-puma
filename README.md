@@ -1,71 +1,72 @@
-# whisper-puma 🐆
+# 🐆 Whisper Puma v0.9
 
-Unlimited local voice dictation for macOS. The spectral predator for your voice.
+A beautiful, native macOS menu bar application for unlimited, 100% local voice dictation. Powered by `mlx-whisper` for blazing-fast performance on Apple Silicon.
 
-> "You speak. The puma listens."
+## ✨ Features
 
-## Install (with Homebrew)
+- **🎙️ Global Dictation** — One-tap high-quality transcription from any application.
+- **⚡ Supercharged by MLX** — Uses Apple's MLX framework for state-of-the-art performance on Metal.
+- **🎯 Elite Accuracy** — Defaults to `distil-whisper-large-v3` for professional-grade accuracy and accent handling.
+- **🔐 100% Private & Offline** — No audio or text ever leaves your machine. No cloud, no API keys, no tracking.
+- **⌨️ Seamless Insertion** — Automatically types transcribed text directly into your active window.
+- **🌓 Native UI** — Lightweight system-integrated menu bar app with dark mode support.
+- **📜 Thought Log** — Automatically saves a local history of your dictations in `~/.whisper_puma_history.log`.
 
-```bash
-# 1. Install deps
-brew install whisper-cpp sox
+## 🚀 Quick Start
 
-# 2. Download model (one-time, 74MB)
-mkdir -p ~/.local/share/whisper-models
-curl -L -o ~/.local/share/whisper-models/ggml-base.bin \
-  "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin"
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/everfacture/whisper-puma.git
+   cd whisper-puma
+   ```
 
-# 3. Copy script to PATH
-cp src/whisper-puma.sh /usr/local/bin/whisper-puma
-chmod +x /usr/local/bin/whisper-puma
+2. **Install Backend Dependencies:**
+   ```bash
+   pip install -r src/backend/requirements.txt
+   ```
 
-# 4. Run
-whisper-puma
-```
+3. **Build & Run the App:**
+   ```bash
+   ./src/ui/build_app.sh
+   open src/ui/WhisperPuma.app
+   ```
 
-## Hotkey Setup
+4. **Permissions:**
+   Grant Microphone and Accessibility permissions when prompted. The app uses the **Function (fn)** key by default.
 
-### skhd (lightest)
-```bash
-brew install koekeishiya/formulae/skhd
+## 🏗️ Architecture
 
-# ~/.config/skhd/skhdrc
-cmd + alt - v : whisper-puma
+Whisper Puma uses a decoupled architecture to ensure the UI remains responsive while the heavy lifting happens in the background.
 
-skhd --start-service
-```
+- **Frontend (Swift 6)**: A native AppKit application that handles global hotkeys, high-fidelity audio recording, and UI feedback.
+- **Backend (Python 3.12/MLX)**: A local HTTP daemon that manages the `distil-whisper-large-v3` model and processes audio buffers via the Metal GPU.
+- **Pasting Engine**: A multi-layered system using `CGEvent` and AppleScript to ensure reliable text injection across different macOS sandboxes.
 
-### Raycast
-Create Quicklink → Command: `whisper-puma` → Hotkey: `⌘⌥V`
+## 📋 Requirements
 
-## How It Works
+- **macOS 14.0** (Sonoma) or later.
+- **Apple Silicon (M1, M2, M3, M4)** — Required for MLX performance.
+- Python 3.9+ installed.
 
-```
-Hotkey → sox records → whisper-cli transcribes → pbcopy → paste
-```
+## 🔐 Privacy & Security
 
-- **100% offline** — Your voice never leaves the Mac
-- **Unlimited** — No word cutoffs
-- **Fast** — Base model runs ~16x realtime on Apple Silicon
+- **Local Processing**: Audio transcription happens entirely on your GPU.
+- **No Analytics**: We don't collect, track, or phone home. Ever.
+- **Secure Handling**: Audio buffers are written to ephemeral storage (`/tmp/`) and overwritten immediately.
 
-## Models
+## 🎉 Roadmap
 
-| Model | Size | Speed | Use |
-|-------|------|-------|-----|
-| tiny | 39MB | ~32x | Fast, less accurate |
-| base | 74MB | ~16x | **Default — best balance** |
-| small | 244MB | ~6x | Better accuracy |
+Whisper Puma is evolving. Here is what's coming next:
 
-Set model: `WHISPER_MODEL=ggml-small.bin whisper-puma`
+- **⚙️ Settings Menu**: In-app UI for changing models and adjusting audio settings.
+- **⌨️ Key Customization**: Capability to remap the global trigger from `fn` to any preferred hotkey.
+- **🏎️ Performance +**: Support for 4-bit and 8-bit quantized models for even faster processing on base M1 chips.
+- **🪟 Windows Support**: Exploring a companion app for Windows using `whisper.cpp` or `faster-whisper`.
+- **✍️ Advanced Formatting**: Optional local LLM integration for punctuation and grammar correction via Ollama.
 
-## Uninstall
+## 👨‍💻 About
 
-```bash
-rm /usr/local/bin/whisper-puma
-rm -rf ~/.local/share/whisper-models
-brew uninstall whisper-cpp sox
-```
+Created with ❤️ to bring unrestricted, professional dictation to everyone.
 
----
+*Voice is the new keyboard. 🐆*
 
-Ghost in the machine. Voice in the wire. 🐆
