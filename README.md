@@ -9,9 +9,10 @@ A beautiful, native macOS application for unlimited, **100% local** voice dictat
 ## ✨ Features
 
 - **🎙️ Global Dictation** — Trigger high-quality transcription anywhere in macOS with a single keypress.
-- **⚡ "Puma Speed" Engine** — Powered by `mlx-whisper` and the `Large-v3-Turbo` model for blazing-fast performance on Metal.
-- **🇬🇧 Gold Standard Accuracy** — Hardcoded "Greedy Decoding" parameters for rock-solid stability, specially tuned for British accents.
-- **🔐 100% Local-First** — Explicitly enforces offline mode. No audio or text ever leaves your machine—no cloud, no API keys, no tracking.
+- **⚡ MLX Framework** — Powered by Apple's machine learning framework for blazing-fast Metal-accelerated inference.
+- **🎯 "Turbo" Accuracy** — Uses the `whisper-large-v3-turbo` model for the best balance of accuracy (handles British accents) and speed.
+- **🔐 100% Local-First** — Enforces offline mode. No audio or text ever leaves your machine—no cloud, no API keys, no tracking.
+
 - **📟 Puma Pulse HUD** — Real-time visual feedback via a sleek, native HUD that pulses as you speak.
 - **⌨️ Custom Hotkey Recorder** — Fully customizable global triggers via a native Swift hotkey recorder.
 - **✂️ Smash-Proof Deduplication** — Intelligent algorithms that detect and eliminate recurring duplication errors.
@@ -42,12 +43,15 @@ A beautiful, native macOS application for unlimited, **100% local** voice dictat
    ./scripts/build_app.sh
    ```
 
-4. **Launch:**
+4. **Launch & Model Sync:**
    ```bash
    open build/WhisperPuma.app
    ```
    > [!IMPORTANT]
-   > **Permissions Check**: On your first launch, macOS will request **Microphone** and **Accessibility** access. You MUST grant these for global hotkeys and text insertion to work.
+   > **First Run**: The very first time you record, the app will automatically download the **Whisper Large-v3-Turbo** model (~1.5GB). This only happens once. After the download is complete, the app enters **Permanent Offline Mode**.
+   >
+   > **Permissions**: macOS will request **Microphone** and **Accessibility** access. You MUST grant these for global hotkeys and text insertion to work.
+
 
 ## 🗺️ Roadmap & Future Improvements
 
