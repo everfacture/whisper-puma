@@ -1,22 +1,14 @@
-# Whisper Puma v1.2.0
+# 🐆 Whisper Puma v1.2.0
 
-Accuracy-first, local-first dictation for macOS menu bar.
+You’re talking to a local Puma—lean, attentive, and tuned to your cadence. Whisper Puma is a native macOS menubar companion that listens, formats, and types your thoughts without ever leaving the machine.
 
-## What v1.2.0 ships
+## Why It Feels Natural
 
-- `Fn` trigger is **hold-to-talk only** (no toggle or double-tap on Fn).
-- One public model policy: **`mlx-community/whisper-large-v3-mlx`**.
-- Hidden reliability fallback: **turbo rescue** (`mlx-community/whisper-large-v3-turbo`) only when final decode is empty.
-- Hybrid punctuation pipeline:
-  - Stage A deterministic formatting and spoken commands.
-  - Stage B optional bounded local LLM polish (`qwen2.5:3b-instruct`, only for `>20` words, hard timeout `250ms`).
-- Direct typing insertion first, clipboard fallback second.
-
-## Requirements
-
-- macOS 14+ on Apple Silicon.
-- Python 3.9+ in `PATH`.
-- Optional for Stage B polish: Ollama with `qwen2.5:3b-instruct`.
+- **Hold, don’t toggle**—`Fn` is the default trigger and always behaves like a hold-to-talk switch so keep your flow and avoid accidental language toggles.
+- **One trusted model**—`mlx-community/whisper-large-v3-mlx` is the release model; turbo only wakes up as a hidden rescue when MLX fails to decode anything useful.
+- **Punctuation that listens**—spoken commands (`comma`, `new paragraph`, `list point one`, etc.) get handled immediately; long transcripts run through a bounded local polish (`qwen2.5:3b-instruct`, 250 ms limit) without rewriting your voice.
+- **Direct typing first**—the Puma prowls straight into the focused app; if that fails, it gently drops the text via clipboard + `Cmd+V` and restores your clipboard contents.
+- **History with a heartbeat**—every transcript is saved in `~/.whisper_puma_history.log` so you can revisit or copy anything that was pasted (clean JSONL with timestamps, styled UI inside Settings).
 
 ## Quick Start
 
@@ -28,55 +20,30 @@ pip install -r src/backend/requirements.txt
 open build/WhisperPuma.app
 ```
 
-## Permissions (required)
+## Required Permissions
 
-1. Microphone: `System Settings -> Privacy & Security -> Microphone`
-2. Accessibility: `System Settings -> Privacy & Security -> Accessibility`
+1. **Microphone** — `System Settings → Privacy & Security → Microphone`
+2. **Accessibility** — `System Settings → Privacy & Security → Accessibility`
 
-Without Accessibility, direct typing is blocked and Whisper Puma falls back to clipboard copy.
+Without Accessibility, the app copies to your clipboard and leaves pasting to you.
 
-## Hotkey Policy
+## Puma Roadmap
 
-- Default trigger is `Fn`.
-- When trigger is `Fn`, recording mode is locked to `Hold to Talk`.
-- Toggle and Double Tap are available only for non-Fn triggers.
+- **Next sprint**: polish spoken list handling, tighten long-form punctuation, and add latency telemetry notifications in Settings.
+- **Upcoming**: smarter context-aware style hints (email vs. notes vs. code) and more expressive HUD cues so you always know what the Puma is doing.
+- **Dream sprint**: multi-language agility (still local-first) plus an offline broadcast mode that keeps your writing synced across devices you trust.
 
-This avoids common macOS Fn tap side-effects (for example input/language switching) and accidental tap sessions.
+## Architecture & Flow
 
-## Punctuation and Commands
-
-Deterministic command handling supports:
-
-- `comma`, `period` / `full stop`, `question mark`, `exclamation mark`
-- `new line`, `new paragraph`
-- `bullet point`
-- `numbered list`, `point one/two/three/four/five`
-
-If no explicit command language is present and transcript is long enough, bounded local polish can refine punctuation.
-
-## Latency and Accuracy Notes
-
-- Short notes (2-6s): typically fastest.
-- Medium/long notes: accuracy is prioritized via full-final decode (up to 30s path).
-- Release-to-insert depends on hardware load and whether local polish is enabled.
+ - Backend process captures PCM chunks via the WebSocket stream, roams through MLX for full-final transcriptions, and falls back to turbo rescue only on empty results.
+ - Settings UI maintains the Puma aesthetic (icon, dark/light clarity, Roe button) with the live latency badge you can snag for checks.
+ - History view is a warm log of your voice thoughts, searchable and copy-ready whenever you need to revisit an idea.
 
 ## Troubleshooting
 
-### Empty transcript
-
-- Confirm microphone permission.
-- Check backend log: `~/.whisper_puma_backend.log`
-- If primary decode is empty, turbo rescue should run automatically.
-
-### Text not inserted
-
-- Confirm Accessibility permission.
-- If insertion target blocks keystroke typing, app falls back to clipboard + `Cmd+V`.
-
-### Model cache problems
-
-- Ensure local cache exists for `mlx-community/whisper-large-v3-mlx`.
-- Legacy model IDs are auto-mapped to the v1.2.0 canonical model.
+- **Empty words**: confirm microphone permission, then check `~/.whisper_puma_backend.log`. The hidden turbo fallback should kick in automatically if the primary decode gives nothing.
+- **Text won’t paste**: ensure Accessibility is granted; otherwise, use clipboard mode and paste manually.
+- **Hotkey feels off**: Fn is purposefully hold-only. If you switch to another trigger, double-tap mode lets you stop/pause cleanly.
 
 ## Logs
 
