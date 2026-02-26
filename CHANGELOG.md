@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-02-26
+### Added
+- Hybrid punctuation pipeline: deterministic spoken-command formatting plus bounded local LLM polish (`qwen2.5:3b-instruct`, `>20` words, `250ms` timeout).
+- Long-form accuracy-first finalize behavior retained with full-final decode up to 30 seconds.
+- Structured history entries (JSONL with timestamps) and refreshed history window layout.
+
+### Changed
+- Fn trigger policy is now hard-locked to **Hold to Talk**.
+- One-model public policy: `mlx-community/whisper-large-v3-mlx`.
+- Settings UI refreshed for production readability and to remove ambiguous model selection.
+
+### Fixed
+- Model alias canonicalization to avoid repo mismatch (`whisper-large-v3*` legacy IDs now map to canonical `large-v3-mlx`).
+- Double-tap mode for non-Fn triggers now has deterministic stop behavior (second tap within threshold stops active recording).
+- Accidental short Fn taps no longer create unintended recording sessions (hold activation delay).
+
+### Migration Notes
+- Existing saved model IDs are auto-mapped to `mlx-community/whisper-large-v3-mlx`.
+- Turbo model remains available internally as hidden rescue only when primary final decode is empty.
+
 ## [1.0.9] - 2026-02-24
 ### Added
 - **Architecture & Stability**: Restructured repository into `scripts/`, `build/`, and `logs/` folders.
@@ -45,4 +65,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - Removed legacy Ollama dependencies in favor of direct high-speed MLX transcription.
-

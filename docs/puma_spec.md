@@ -1,78 +1,73 @@
-# Whisper Puma: Architecture Specification
+# Whisper Puma v1.2.0 Specification
 
-**Goal**: Evolve Whisper Puma from a simple shell script wrapper into a persistent, local macOS dictation tool that rivals Wispr Flow in UX and intelligent formatting, while remaining 100% private and cost-free.
+## Product Direction
 
----
+Whisper Puma v1.2.0 is an accuracy-first, local-first dictation app for macOS with a stable `Fn` hold workflow and fast insertion.
 
-## 1. Core Architecture Components
+## Locked Decisions
 
-To achieve "local Wispr Flow" functionality, the system needs four continuous background services orchestrated via a lightweight Swift/Go backend or a robust shell daemon:
+1. `Fn` trigger is hold-to-talk only.
+2. Public model policy is one model: `mlx-community/whisper-large-v3-mlx`.
+3. Hidden reliability fallback is `mlx-community/whisper-large-v3-turbo` only when primary final decode is empty.
+4. Insertion strategy is direct typing first, clipboard fallback.
+5. Formatting pipeline is local hybrid: deterministic rules, then bounded local LLM polish.
 
-### Audio Capture & VAD (Voice Activity Detection)
-- **Role**: Listen for the global activation hotkey (`fn` key), record system audio, and detect when the user stops speaking.
-- **Tools**: **Silero VAD v5** (Python or ONNX native). It's the industry standard for 100% local, zero-latency voice detection.
-- **Flow**: User holds `fn` -> Silero VAD detects speech -> Records chunks of audio to RAM/tmp -> User releases `fn` (or VAD detects silence for 1 second) -> Audio passed to STT.
-- **Audio Privacy**: Audio is buffered in RAM or a `/tmp` file that is instantly deleted after transcription. No audio files are saved permanently to your disk unless you enable a debug mode.
+## Runtime Flow
 
-### Transcription & Formatting Engine (MLX)
-- **Role**: The core engine. Converts audio directly into high-fidelity, formatted text.
-- **Tools**: **MLX Whisper** (Apple's dedicated machine learning framework).
-- **Models**: **`mlx-community/whisper-large-v3-turbo`**. This model provides the perfect balance: the accuracy of a large model with the speed of a tiny one. It handles British accents and basic punctuation natively, eliminating the need for a secondary LLM layer.
-- **Flow**: Reads absolute-path local cache -> Forced Greedy Decoding -> Direct output to UI.
+1. User holds trigger key.
+2. UI opens stream session over WebSocket (`/stream`).
+3. UI sends PCM16 chunks while recording.
+4. Backend produces rolling partials for live feedback.
+5. On release, backend finalizes transcript and returns final text.
+6. UI runs deterministic formatting.
+7. Optional bounded polish runs for long transcripts only (`>20` words, `250ms` timeout).
+8. Text is inserted with direct typing; fallback uses clipboard paste and clipboard restore.
+9. Transcript is written to local history (`~/.whisper_puma_history.log`).
 
-### UI & System Integration
-- **Role**: Minimal, invisible background operation with robust error handling.
-- **Tools**: A native macOS **Swift Menu Bar App**. This is much more stable than scripting tools for global keyboard OS hooks.
-- **Flow**: 
-  - **Press and hold `fn`**: Transcribes speech and injects it exactly where your cursor is when you release the key.
-  - **Double-tap `fn`**: Toggles continuous dictation mode (stays running until you double-tap again).
-- **Resilience & Error Handling**: Runs silently in the background. If pasting into the active window fails, the generated text is automatically saved to your **macOS Clipboard** and appended to a hidden local `~/.whisper_puma_history.log` file so you never lose a thought.
+## Accuracy and Latency Strategy
 
----
+- Partial decode is used for responsiveness only.
+- Final output prioritizes full-final decode for normal-length clips (up to 30 seconds).
+- Reconcile and fallback passes exist for edge cases.
+- Turbo rescue is only invoked on empty primary final result.
 
-## 2. Workspace Rules Compliance
+## Hotkey Behavior
 
-Development of Whisper Puma must strictly adhere to the OpenClaw workspace rules defined in `memory/references/code_craft.md`:
-1. **Repository Hygiene (Clean Root Pattern)**: The project directory must be organized cleanly (`src/`, `README.md`, `LICENSE`, `CHANGELOG.md`, `CONTRIBUTING.md`).
-2. **README Structure**: Must implement the 10-point hero document structure (Hero logo, status badges, one-liner, quick links, install command, architecture diagram, key subsystems, config example, security model, community).
-3. **8-Step Safe Modification Protocol**: All future code modifications must follow the Read -> Hash -> Check -> Backup -> Apply -> Validate -> Test -> Log protocol.
+- If trigger key is `Fn` (`keyCode 63`), effective mode is forced to `Hold to Talk`.
+- Non-Fn keys can use Hold/Toggle/Double Tap.
+- Double Tap on non-Fn keys supports deterministic stop on second tap within threshold.
+- Very short accidental sessions are discarded.
 
----
+## Formatting Pipeline
 
-## 2. Ideal Tech Stack Recommendation
+### Stage A (always on)
 
-For maximum performance and macOS nativity without building a complex Xcode app from scratch:
+- Spoken punctuation commands (`comma`, `period`, `new line`, etc.)
+- Spoken list commands (`bullet point`, `numbered list`, `point one/two/...`)
+- Disfluency and spacing cleanup
+- Sentence boundary normalization
 
-- **Backend Daemon**: **Go** or **Python**
-  - Handles the background orchestration, piping audio to Whisper, and sending API requests to Ollama.
-- **STT**: **`whisper.cpp`**
-  - Unbeatable speed on Apple Silicon.
-- **LLM Engine**: **Ollama**
-  - Runs as a headless local server `http://127.0.0.1:11434` for blazing-fast inference.
-- **Global Hotkey & UI Injection**: **Hammerspoon** (Lua)
-  - Hammerspoon is perfect for this. It can map a global shortcut (e.g., `Cmd+Shift+Space`), trigger the Go/Python backend, show a custom floating UI alert ("Listening..."), and use its `hs.eventtap` module to instantly type out the received text into the active application.
+### Stage B (bounded local polish)
 
----
+- Model: `qwen2.5:3b-instruct` via local Ollama
+- Trigger: transcript length `>20` words
+- Timeout: `250ms` hard limit
+- Failure mode: fall back to Stage A output unchanged
+- Command-priority guard: explicit spoken commands bypass LLM overwrite
 
-## 3. The "Wispr Flow" Feature Parity Map
+## Known Limitations (Current)
 
-| Wispr Flow Feature | Whisper Puma Local Implementation |
-| :--- | :--- |
-| **Universal Typing** | Hammerspoon `hs.eventtap.keyStrokes(text)` pastes into any active UI field. |
-| **Auto-Editing/Grammar** | Pass the raw Whisper output to Ollama with a system prompt: *"Fix grammar and remove filler words from this transcript. Output only the text."* |
-| **Context Aware (Code vs Chat)** | Hammerspoon can detect the active app bundle ID (e.g., `com.microsoft.VSCode`). If VSCode is active, tell Ollama: *"Format this as code"* |
-| **Command Mode** | If transcript begins with the wake word (e.g., *"Puma, summarize this"*), capture highlighted text via `Cmd+C`, send to Ollama with the vocal prompt, and paste the result. |
-| **Total Privacy** | 100% Local. No network requests outside `127.0.0.1`. |
+- Punctuation for long disfluent speech remains best-effort and may need future tuning.
+- Proper noun/entity recall can degrade with noisy background audio.
+- The 250ms polish guard favors latency predictability over deep rewriting quality.
 
----
+## Observability
 
-## 4. Example Orchestration Flow & Speed (The "Happy Path")
+- Backend log: `~/.whisper_puma_backend.log`
+- History log: `~/.whisper_puma_history.log`
+- Settings latency badge displays last / p50 / p95 release-to-insert samples.
 
-Total latency from releasing the key to text appearing: **~1.0 - 1.5 seconds**.
+## Release Notes Source of Truth
 
-1. **Activation**: You hold `fn` anywhere on macOS.
-2. **Capture**: Audio is captured to RAM (instant, zero-latency via Silero VAD).
-3. **Processing**: You release `fn`.
-4. **Whisper STT**: Local `whisper.cpp` crunches the audio. *Speed: ~0.2 - 0.4s for a short sentence on Apple Silicon.* -> Raw text: *"um yeah write a function to fetch users"*
-5. **Ollama LLM**: Local `qwen2.5:3b` receives the text and formats it with proper punctuation. *Speed: ~0.5 - 0.8s.* -> Refined text: `const fetchUsers = async () => {...}`
-6. **Injection**: Swift app simulates keystrokes or `Cmd+V` to paste the text at your cursor (instant).
+- Product behavior: `README.md`
+- Change summary: `CHANGELOG.md`

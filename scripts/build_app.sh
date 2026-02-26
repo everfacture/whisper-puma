@@ -75,9 +75,13 @@ else
 EOF
 fi
 
-# 6. Signing (Ad-hoc)
-echo "🔐 Signing App Bundle..."
-codesign --force --deep --sign - "$BUILD_DIR/$APP_NAME.app"
+# 6. Signing (optional ad-hoc; disabled by default for stable local permissions)
+if [ "${WHISPER_PUMA_CODESIGN:-0}" = "1" ]; then
+    echo "🔐 Signing App Bundle (ad-hoc)..."
+    codesign --force --deep --sign - "$BUILD_DIR/$APP_NAME.app"
+else
+    echo "ℹ️ Skipping codesign for local dev (set WHISPER_PUMA_CODESIGN=1 to enable)."
+fi
 
 echo "✅ Build complete! You can find the app at: $BUILD_DIR/$APP_NAME.app"
 echo "👉 To run it: open $BUILD_DIR/$APP_NAME.app"

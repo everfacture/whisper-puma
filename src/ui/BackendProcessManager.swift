@@ -39,8 +39,6 @@ class BackendProcessManager {
             
             let logFileHandle = try FileHandle(forWritingTo: logURL)
             logFileHandle.seekToEndOfFile()
-            
-            let pipe = Pipe()
             backendProcess?.standardOutput = logFileHandle
             backendProcess?.standardError = logFileHandle
             

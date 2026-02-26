@@ -6,7 +6,7 @@ struct Constants {
     static let backendURL: String = "http://localhost:\(backendPort)"
     
     // Model Configuration
-    static let defaultModel: String = "mlx-community/whisper-large-v3-turbo"
+    static let defaultModel: String = "mlx-community/whisper-large-v3-mlx"
     
     // Paths
     static let backendLogPath: String = (NSHomeDirectory() as NSString).appendingPathComponent(".whisper_puma_backend.log")
