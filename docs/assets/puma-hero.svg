@@ -1,0 +1,42 @@
+<svg width="1200" height="420" viewBox="0 0 1200 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="420" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0C0F14"/>
+      <stop offset="1" stop-color="#141B24"/>
+    </linearGradient>
+    <linearGradient id="stripe" x1="120" y1="80" x2="1080" y2="340" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F4C97A"/>
+      <stop offset="1" stop-color="#E48D3A"/>
+    </linearGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="10"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="420" rx="20" fill="url(#bg)"/>
+  <path d="M100 330C260 280 430 290 600 250C770 210 940 130 1100 80" stroke="url(#stripe)" stroke-width="14" stroke-linecap="round" opacity="0.7"/>
+  <circle cx="240" cy="130" r="90" fill="#1B2430"/>
+  <circle cx="240" cy="130" r="74" fill="#232F3D"/>
+
+  <path d="M215 116L225 95L240 109L255 95L265 116" stroke="#F4C97A" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M211 144C220 158 232 165 240 165C248 165 260 158 269 144" stroke="#F4C97A" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="225" cy="132" r="6" fill="#F8E3B4"/>
+  <circle cx="255" cy="132" r="6" fill="#F8E3B4"/>
+
+  <text x="360" y="150" fill="#F8FAFC" font-size="56" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Arial, sans-serif" font-weight="700">Whisper Puma</text>
+  <text x="360" y="198" fill="#AAB7C7" font-size="28" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Arial, sans-serif">
+    Local-first dictation. Fast paws. Clean prose.
+  </text>
+
+  <rect x="360" y="230" width="230" height="44" rx="12" fill="#1E2A38"/>
+  <text x="378" y="259" fill="#D5E2F2" font-size="20" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Arial, sans-serif">Fn Hold to Talk</text>
+
+  <rect x="608" y="230" width="270" height="44" rx="12" fill="#1E2A38"/>
+  <text x="626" y="259" fill="#D5E2F2" font-size="20" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Arial, sans-serif">Large v3 MLX Accurate</text>
+
+  <rect x="896" y="230" width="214" height="44" rx="12" fill="#1E2A38"/>
+  <text x="914" y="259" fill="#D5E2F2" font-size="20" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Arial, sans-serif">Turbo Rescue</text>
+
+  <circle cx="1080" cy="320" r="26" fill="#F4C97A" filter="url(#soft)" opacity="0.4"/>
+  <circle cx="1040" cy="350" r="18" fill="#E48D3A" filter="url(#soft)" opacity="0.45"/>
+</svg>
