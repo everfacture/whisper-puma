@@ -1,0 +1,62 @@
+name: Release Build
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (example: 1.3.0)"
+        required: true
+        default: "1.3.0"
+
+permissions:
+  contents: write
+
+jobs:
+  package-macos:
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Resolve version
+        id: version
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          else
+            VERSION="${{ github.event.inputs.version }}"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Build release artifacts
+        shell: bash
+        run: |
+          chmod +x ./scripts/build_app.sh ./scripts/package_release.sh
+          ./scripts/package_release.sh "${{ steps.version.outputs.version }}"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: whisper-puma-macos-${{ steps.version.outputs.version }}
+          path: |
+            dist/WhisperPuma-${{ steps.version.outputs.version }}-macOS.zip
+            dist/WhisperPuma-${{ steps.version.outputs.version }}-macOS.dmg
+
+      - name: Publish GitHub Release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/WhisperPuma-${{ steps.version.outputs.version }}-macOS.zip
+            dist/WhisperPuma-${{ steps.version.outputs.version }}-macOS.dmg
+          generate_release_notes: true

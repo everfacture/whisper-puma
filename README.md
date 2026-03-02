@@ -2,7 +2,7 @@
 
 ![Whisper Puma Hero](docs/assets/puma-hero.svg)
 
-[![Version](https://img.shields.io/badge/version-v1.2.0-E48D3A)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-v1.3.0-E48D3A)](CHANGELOG.md)
 [![Platform](https://img.shields.io/badge/platform-macOS%2014%2B-0B1017)](#required-permissions)
 [![Model](https://img.shields.io/badge/model-whisper--large--v3--mlx-1D2A39)](#how-it-works)
 [![Privacy](https://img.shields.io/badge/privacy-local--first-2E4B34)](#why-whisper-puma)
@@ -76,6 +76,10 @@ open build/WhisperPuma.app
 This produces:
 - `dist/WhisperPuma-<version>-macOS.zip`
 - `dist/WhisperPuma-<version>-macOS.dmg`
+
+GitHub release automation:
+- Push a tag like `v1.3.0` to trigger `.github/workflows/release.yml`
+- The workflow builds and publishes `.zip` + `.dmg` artifacts to the Release page
 
 ## Required Permissions
 

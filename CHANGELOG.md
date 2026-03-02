@@ -5,11 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.2.0] - 2026-02-01
+## [1.3.0] - 2026-03-03
 ### Added
 - Local punctuation restoration service (`src/backend/punctuation_service.py`) with sanity checks and confidence thresholds to prevent low-quality punctuation outputs.
 - Automatic punctuation cleanup pass to normalize awkward punctuation artifacts (for example `before,.` and misplaced commas in short phrases).
 - Release packaging script (`scripts/package_release.sh`) to generate no-terminal install artifacts (`.zip` and `.dmg`).
+- GitHub Actions release workflow (`.github/workflows/release.yml`) to build macOS artifacts on tag push and attach them to releases.
 
 ### Changed
 - Stream decode startup now auto-falls back to turbo when the primary MLX cache path is unavailable, improving first-run reliability.
