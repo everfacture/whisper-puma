@@ -1,8 +1,8 @@
-# Whisper Puma v1.2.0 Specification
+# Whisper Puma v1.3.0 Specification
 
 ## Product Direction
 
-Whisper Puma v1.2.0 is an accuracy-first, local-first dictation app for macOS with a stable `Fn` hold workflow and fast insertion.
+Whisper Puma v1.3.0 is an accuracy-first, local-first dictation app for macOS with a stable `Fn` hold workflow, safer punctuation, and fast insertion.
 
 ## Locked Decisions
 
@@ -20,7 +20,7 @@ Whisper Puma v1.2.0 is an accuracy-first, local-first dictation app for macOS wi
 4. Backend produces rolling partials for live feedback.
 5. On release, backend finalizes transcript and returns final text.
 6. UI runs deterministic formatting.
-7. Optional bounded polish runs for long transcripts only (`>20` words, `250ms` timeout).
+7. Optional bounded polish runs when heuristic quality checks indicate it is needed (adaptive timeout by utterance length).
 8. Text is inserted with direct typing; fallback uses clipboard paste and clipboard restore.
 9. Transcript is written to local history (`~/.whisper_puma_history.log`).
 
@@ -50,8 +50,8 @@ Whisper Puma v1.2.0 is an accuracy-first, local-first dictation app for macOS wi
 ### Stage B (bounded local polish)
 
 - Model: `qwen2.5:3b-instruct` via local Ollama
-- Trigger: transcript length `>20` words
-- Timeout: `250ms` hard limit
+- Trigger: heuristic-based (enabled for longer or weakly punctuated transcripts)
+- Timeout: adaptive (`450ms` to `900ms` based on transcript length)
 - Failure mode: fall back to Stage A output unchanged
 - Command-priority guard: explicit spoken commands bypass LLM overwrite
 
@@ -59,7 +59,7 @@ Whisper Puma v1.2.0 is an accuracy-first, local-first dictation app for macOS wi
 
 - Punctuation for long disfluent speech remains best-effort and may need future tuning.
 - Proper noun/entity recall can degrade with noisy background audio.
-- The 250ms polish guard favors latency predictability over deep rewriting quality.
+- The bounded polish guard still prioritizes latency predictability over deep rewriting quality.
 
 ## Observability
 

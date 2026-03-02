@@ -122,12 +122,12 @@ Fn Hold
 
 - Empty transcript: verify mic permission and inspect `~/.whisper_puma_backend.log`.
 - No paste: verify Accessibility permission; fallback copy still works.
-- Fn behavior unexpected: Fn is intentionally hold-only in v1.2.0.
+- Fn behavior unexpected: Fn is intentionally hold-only in v1.3.0.
 - First run slower than later runs: expected while local models warm up.
 
 ## Docs
 
 - Spec: [docs/puma_spec.md](docs/puma_spec.md)
 - Tasks: [docs/task.md](docs/task.md)
-- Release Notes: [docs/release-notes-v1.2.0.md](docs/release-notes-v1.2.0.md)
+- Release Notes: [docs/release-notes-v1.3.0.md](docs/release-notes-v1.3.0.md)
 - Changelog: [CHANGELOG.md](CHANGELOG.md)
