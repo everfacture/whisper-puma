@@ -9,10 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Local punctuation restoration service (`src/backend/punctuation_service.py`) with sanity checks and confidence thresholds to prevent low-quality punctuation outputs.
 - Automatic punctuation cleanup pass to normalize awkward punctuation artifacts (for example `before,.` and misplaced commas in short phrases).
+- Release packaging script (`scripts/package_release.sh`) to generate no-terminal install artifacts (`.zip` and `.dmg`).
 
 ### Changed
 - Stream decode startup now auto-falls back to turbo when the primary MLX cache path is unavailable, improving first-run reliability.
 - Spoken formatting command handling now includes command-phrase normalization and literal-mention detection, so phrases like “when I say new paragraph” are preserved as content.
+- Build system can now bundle a local Python runtime into the app (`WHISPER_PUMA_BUNDLE_PYTHON=1`) for noob-friendly installation.
+- README now includes explicit support matrix (macOS/Apple Silicon requirements and unsupported platforms).
 
 ### Fixed
 - Empty/no-audio hotkey sessions are now discarded before transcript submission, reducing false “no speech/cancelled” errors.

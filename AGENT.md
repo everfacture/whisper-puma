@@ -28,6 +28,7 @@ It prioritizes low-latency transcription, punctuation quality, and reliable dire
 ## Deploy command
 - Local ship artifact: `./scripts/build_app.sh`
 - Run app: `open build/WhisperPuma.app`
+- Noob release artifacts: `./scripts/package_release.sh` (creates `.zip` + `.dmg` in `dist/`)
 
 ## Permission zones (repo-specific)
 - Move freely: `docs/`, `README.md`, `CHANGELOG.md`, `scripts/`, `src/ui/`, `src/backend/`

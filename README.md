@@ -14,7 +14,9 @@ It stays private, it moves fast, and it tries to keep your natural voice instead
 ## Quick Links
 
 - [Why Whisper Puma](#why-whisper-puma)
-- [Quick Start](#quick-start)
+- [System Requirements](#system-requirements)
+- [Easy Install](#easy-install-recommended)
+- [Developer Install](#developer-install)
 - [How It Works](#how-it-works)
 - [Puma Roadmap](#puma-roadmap)
 - [Troubleshooting](#troubleshooting)
@@ -29,7 +31,33 @@ It stays private, it moves fast, and it tries to keep your natural voice instead
 - Long transcripts can also run bounded local polish (`qwen2.5:3b-instruct`) as a final cleanup layer.
 - Direct typing is first, clipboard fallback is second, and history is always captured in `~/.whisper_puma_history.log`.
 
-## Install
+## System Requirements
+
+### Supported
+- macOS 14+ (Sonoma or newer)
+- Apple Silicon Macs (`arm64`: M1/M2/M3/M4)
+- Microphone + Accessibility permissions enabled
+
+### Not Supported (current release)
+- Windows laptops
+- Linux laptops
+- Intel Macs (`x86_64`) with the provided prebuilt app
+
+### Notes
+- Packaged release artifacts (`.zip` / `.dmg`) are no-terminal install for supported Macs.
+- First launch can be slower because local models warm up.
+
+## Easy Install (Recommended)
+
+1. Download the latest `WhisperPuma-*-macOS.zip` from [GitHub Releases](https://github.com/everfacture/whisper-puma/releases).
+2. Unzip and drag `WhisperPuma.app` into `Applications`.
+3. Open the app, then grant:
+   - Microphone permission
+   - Accessibility permission
+
+No Python or terminal steps are required when using the packaged release artifact.
+
+## Developer Install
 
 ```bash
 git clone https://github.com/everfacture/whisper-puma.git
@@ -38,6 +66,16 @@ python3 -m pip install --user -r src/backend/requirements.txt
 ./scripts/build_app.sh
 open build/WhisperPuma.app
 ```
+
+## Release Packaging
+
+```bash
+./scripts/package_release.sh
+```
+
+This produces:
+- `dist/WhisperPuma-<version>-macOS.zip`
+- `dist/WhisperPuma-<version>-macOS.dmg`
 
 ## Required Permissions
 

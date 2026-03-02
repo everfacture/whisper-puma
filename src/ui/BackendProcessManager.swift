@@ -17,18 +17,36 @@ class BackendProcessManager {
             logger.error("Backend script not found in bundle!")
             return
         }
-        
+
+        let fileManager = FileManager.default
+        let bundledPythonPath = Bundle.main.resourceURL?
+            .appendingPathComponent(".venv/bin/python3")
+            .path
+        let pythonExecutable = bundledPythonPath.flatMap { path -> String? in
+            fileManager.isExecutableFile(atPath: path) ? path : nil
+        } ?? "/usr/bin/python3"
+
         backendProcess = Process()
-        backendProcess?.executableURL = URL(fileURLWithPath: "/usr/bin/python3")
-        
+        backendProcess?.executableURL = URL(fileURLWithPath: pythonExecutable)
+
+        if pythonExecutable != "/usr/bin/python3" {
+            logger.info("Using bundled Python runtime for backend.")
+        } else {
+            logger.info("Using system Python runtime for backend.")
+        }
+
         // Use environment variables instead of bash exports
         var environment = ProcessInfo.processInfo.environment
         environment["PYTHONDONTWRITEBYTECODE"] = "1"
         environment["PYTHONUNBUFFERED"] = "1"
         backendProcess?.environment = environment
-        
+
+        if let resourcePath = Bundle.main.resourcePath {
+            backendProcess?.currentDirectoryURL = URL(fileURLWithPath: resourcePath)
+        }
+
         backendProcess?.arguments = [scriptPath]
-        
+
         // Redirect output to the centralized log path
         let logURL = URL(fileURLWithPath: Constants.backendLogPath)
         do {

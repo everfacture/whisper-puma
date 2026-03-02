@@ -11,6 +11,7 @@ BUILD_DIR="build"
 SRC_UI="src/ui"
 SRC_BACKEND="src/backend"
 LOG_DIR="logs"
+BUNDLE_PYTHON="${WHISPER_PUMA_BUNDLE_PYTHON:-0}"
 
 echo "🐆 Preparing Whisper Puma build..."
 
@@ -44,6 +45,14 @@ swiftc $SWIFT_FILES \
 # 4. Bundle Backend
 echo "🐍 Bundling Python Backend..."
 cp -r "$SRC_BACKEND/"* "$BUILD_DIR/$APP_NAME.app/Contents/Resources/"
+
+if [ "$BUNDLE_PYTHON" = "1" ]; then
+    echo "📦 Creating bundled Python runtime..."
+    VENV_DIR="$BUILD_DIR/$APP_NAME.app/Contents/Resources/.venv"
+    python3 -m venv "$VENV_DIR"
+    "$VENV_DIR/bin/python3" -m pip install --upgrade pip
+    "$VENV_DIR/bin/python3" -m pip install -r "$SRC_BACKEND/requirements.txt"
+fi
 
 # 5. Metadata & Assets
 echo "📄 Copying Info.plist..."

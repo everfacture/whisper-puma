@@ -8,6 +8,7 @@ Icon
 
 # Xcode
 build/
+dist/
 DerivedData/
 *.xcworkspace
 *.moved-aside
