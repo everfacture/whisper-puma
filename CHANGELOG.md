@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Added
+- Local punctuation restoration service (`src/backend/punctuation_service.py`) with sanity checks and confidence thresholds to prevent low-quality punctuation outputs.
+- Automatic punctuation cleanup pass to normalize awkward punctuation artifacts (for example `before,.` and misplaced commas in short phrases).
+
+### Changed
+- Stream decode startup now auto-falls back to turbo when the primary MLX cache path is unavailable, improving first-run reliability.
+- Spoken formatting command handling now includes command-phrase normalization and literal-mention detection, so phrases like “when I say new paragraph” are preserved as content.
+
+### Fixed
+- Empty/no-audio hotkey sessions are now discarded before transcript submission, reducing false “no speech/cancelled” errors.
+- Long-form formatting stability improved for paragraph/list rendering and punctuation post-processing consistency.
+- Install command in `README.md` updated to `python3 -m pip` for environments without `pip` on PATH.
+
 ## [1.2.0] - 2026-02-26
 ### Added
 - Hybrid punctuation pipeline: deterministic spoken-command formatting plus bounded local LLM polish (`qwen2.5:3b-instruct`, `>20` words, `250ms` timeout).
