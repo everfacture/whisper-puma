@@ -14,6 +14,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var lastSessionStopAt: Date?
     private var pendingHoldStartWorkItem: DispatchWorkItem?
     private var lastDoubleTapPressAt: Date?
+    private var currentSessionChunkCount = 0
     private let fnHoldActivationDelay: TimeInterval = 0.14
     private let doubleTapThreshold: TimeInterval = 0.35
 
@@ -175,6 +176,7 @@ extension AppDelegate: HotkeyDelegate {
         }
         isRecording = true
         shouldDiscardCurrentSession = false
+        currentSessionChunkCount = 0
         recordingStartedAt = Date()
 
         targetApp = NSWorkspace.shared.frontmostApplication
@@ -195,7 +197,10 @@ extension AppDelegate: HotkeyDelegate {
         isRecording = false
 
         let duration = Date().timeIntervalSince(recordingStartedAt ?? Date())
-        if duration < 0.12 {
+        if currentSessionChunkCount == 0 {
+            shouldDiscardCurrentSession = true
+            logger.info("Discarding empty recording session (\(String(format: "%.3f", duration))s, no audio chunks).")
+        } else if duration < 0.12 {
             shouldDiscardCurrentSession = true
             logger.info("Discarding ultra-short recording session (\(String(format: "%.3f", duration))s).")
         }
@@ -225,10 +230,12 @@ extension AppDelegate: AudioRecordingDelegate {
     }
 
     func onAudioChunk(data: Data, sampleRate: Double, t0Ms: Int64, t1Ms: Int64) {
+        currentSessionChunkCount += 1
         networkService.sendAudioChunk(data, t0Ms: t0Ms, t1Ms: t1Ms)
     }
 
     func onRecordingStopped() {
+        defer { currentSessionChunkCount = 0 }
         if shouldDiscardCurrentSession {
             networkService.cancelStreamingSession()
             shouldDiscardCurrentSession = false

@@ -9,6 +9,7 @@ from typing import Dict
 import numpy as np
 
 from logger_service import LoggerService
+from punctuation_service import PunctuationService
 
 
 @dataclass
@@ -50,6 +51,8 @@ class AudioService:
         self.skip_tail_below_ms = 120
         self.max_tail_decode_ms = 2200
         self.full_finalize_max_seconds = 30.0
+        self.punctuation_service = PunctuationService(logger)
+        self._primary_decode_unavailable = False
 
     def _canonical_repo_id(self, repo_id: str) -> str:
         if not repo_id:
@@ -114,7 +117,33 @@ class AudioService:
             self.whisper_ready = True
             self.logger.info("MLX Whisper warmup complete.")
         except Exception as e:
-            self.logger.error(f"Could not preload MLX Whisper: {e}")
+            decode_error = str(e).lower()
+            is_primary_failure = "load_npz" in decode_error or "zip file" in decode_error
+            if is_primary_failure:
+                self._primary_decode_unavailable = True
+                self.logger.warning(
+                    "Primary model warmup failed; switching process default to turbo."
+                )
+                try:
+                    import mlx_whisper
+
+                    dummy_audio = np.zeros(16000, dtype=np.float32)
+                    with self._mlock:
+                        mlx_whisper.transcribe(
+                            dummy_audio,
+                            path_or_hf_repo=self.turbo_model_path,
+                            temperature=0.0,
+                            condition_on_previous_text=False,
+                            language="en",
+                        )
+                    self.whisper_ready = True
+                    self.logger.info("Turbo warmup complete.")
+                except Exception as turbo_e:
+                    self.logger.error(f"Could not preload turbo Whisper: {turbo_e}")
+            else:
+                self.logger.error(f"Could not preload MLX Whisper: {e}")
+
+        self.punctuation_service.preload_model()
 
     def _has_speech(self, audio: np.ndarray, threshold: float) -> bool:
         if audio.size == 0:
@@ -153,32 +182,93 @@ class AudioService:
             t += "."
         return t
 
+    def _finalize_text(self, audio: np.ndarray, language: str, text: str) -> str:
+        normalized = " ".join((text or "").split()).strip()
+        if not normalized:
+            return ""
+
+        lang = (language or "en").lower()
+        if lang.startswith("en"):
+            restored = self.punctuation_service.restore(
+                audio=audio,
+                sampling_rate=self.model_sample_rate,
+                transcript=normalized,
+            )
+            if restored:
+                return restored
+
+        return self._fast_punctuate(normalized)
+
     def _decode_np_audio(self, audio: np.ndarray, language: str, model_path: str) -> str:
         import mlx_whisper
 
+        selected_model_path = model_path
+        if selected_model_path == self.primary_model_path and self._primary_decode_unavailable:
+            selected_model_path = self.turbo_model_path
+
         with self._mlock:
-            result = mlx_whisper.transcribe(
-                audio,
-                path_or_hf_repo=model_path,
-                temperature=0.0,
-                condition_on_previous_text=False,
-                language=language or "en",
-            )
+            try:
+                result = mlx_whisper.transcribe(
+                    audio,
+                    path_or_hf_repo=selected_model_path,
+                    temperature=0.0,
+                    condition_on_previous_text=False,
+                    language=language or "en",
+                )
+            except Exception as e:
+                decode_error = str(e).lower()
+                is_primary_failure = selected_model_path == self.primary_model_path and (
+                    "load_npz" in decode_error or "zip file" in decode_error
+                )
+                if not is_primary_failure:
+                    raise
+
+                self._primary_decode_unavailable = True
+                self.logger.warning(
+                    "Primary decode path unavailable; switching to turbo for this process."
+                )
+                result = mlx_whisper.transcribe(
+                    audio,
+                    path_or_hf_repo=self.turbo_model_path,
+                    temperature=0.0,
+                    condition_on_previous_text=False,
+                    language=language or "en",
+                )
         return result.get("text", "").strip()
 
     def transcribe_audio(self, file_path: str) -> str:
         try:
             import mlx_whisper
 
-            self.logger.info(f"Transcribing (legacy HTTP) with {self.primary_repo_id}...")
+            model_path = self.turbo_model_path if self._primary_decode_unavailable else self.primary_model_path
+            self.logger.info(f"Transcribing (legacy HTTP) with {'turbo' if self._primary_decode_unavailable else self.primary_repo_id}...")
             with self._mlock:
-                result = mlx_whisper.transcribe(
-                    file_path,
-                    path_or_hf_repo=self.primary_model_path,
-                    temperature=0.0,
-                    condition_on_previous_text=False,
-                    language="en",
-                )
+                try:
+                    result = mlx_whisper.transcribe(
+                        file_path,
+                        path_or_hf_repo=model_path,
+                        temperature=0.0,
+                        condition_on_previous_text=False,
+                        language="en",
+                    )
+                except Exception as e:
+                    decode_error = str(e).lower()
+                    is_primary_failure = (
+                        model_path == self.primary_model_path
+                        and ("load_npz" in decode_error or "zip file" in decode_error)
+                    )
+                    if not is_primary_failure:
+                        raise
+
+                    self._primary_decode_unavailable = True
+                    self.logger.warning("Primary legacy decode unavailable; retrying on turbo.")
+                    result = mlx_whisper.transcribe(
+                        file_path,
+                        path_or_hf_repo=self.turbo_model_path,
+                        temperature=0.0,
+                        condition_on_previous_text=False,
+                        language="en",
+                    )
 
             text = result["text"].strip()
             if not text:
@@ -207,8 +297,9 @@ class AudioService:
 
     def create_stream_session(self, session_id: str, sample_rate: int, language: str = "en", model_repo: str = "") -> None:
         input_sr = max(1, int(sample_rate))
-        repo = self._canonical_repo_id(model_repo or self.default_repo_id)
-        model_path = self._resolve_model_path(repo)
+        using_turbo_default = self._primary_decode_unavailable
+        repo = self.turbo_repo_id if using_turbo_default else self._canonical_repo_id(model_repo or self.default_repo_id)
+        model_path = self.turbo_model_path if using_turbo_default else self._resolve_model_path(repo)
         self.logger.info(
             f"Stream session started ({session_id}) input_sr={input_sr} model_sr={self.model_sample_rate} repo={repo}"
         )
@@ -391,7 +482,7 @@ class AudioService:
             self._sessions.pop(session_id, None)
 
         latency_ms = int((time.time() - started_at) * 1000.0)
-        return {"text": self._fast_punctuate(final_text.strip()), "latency_ms": latency_ms}
+        return {"text": self._finalize_text(audio, language, final_text.strip()), "latency_ms": latency_ms}
 
     def decode_base64_chunk(self, b64_payload: str) -> bytes:
         if not b64_payload:

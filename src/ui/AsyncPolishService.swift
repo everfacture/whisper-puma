@@ -14,8 +14,10 @@ final class AsyncPolishService {
         }
 
         let prompt = """
-        Clean up punctuation and readability only.
-        Preserve wording, names, and list structure.
+        You are formatting live dictation.
+        Add punctuation and paragraph breaks using context.
+        Keep the original wording and order.
+        Do not paraphrase, summarize, or add content.
         Return only the final text with no commentary.
 
         Text:

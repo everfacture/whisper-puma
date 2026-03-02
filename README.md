@@ -24,7 +24,9 @@ It stays private, it moves fast, and it tries to keep your natural voice instead
 - `Fn` is hold-to-talk by design, so you avoid accidental toggles and macOS key side effects.
 - One public model policy: `mlx-community/whisper-large-v3-mlx` for stable, accurate local dictation.
 - Hidden turbo rescue exists only for empty final decodes, not as the primary path.
-- Spoken punctuation commands are deterministic, and long transcripts can run a bounded local polish pass (`qwen2.5:3b-instruct`, 250ms cap).
+- Final transcripts run an automatic local punctuation restoration pass (speech-aware, model-based) before insertion.
+- Spoken punctuation commands are still supported as explicit overrides in deterministic UI formatting.
+- Long transcripts can also run bounded local polish (`qwen2.5:3b-instruct`) as a final cleanup layer.
 - Direct typing is first, clipboard fallback is second, and history is always captured in `~/.whisper_puma_history.log`.
 
 ## Install
@@ -32,7 +34,7 @@ It stays private, it moves fast, and it tries to keep your natural voice instead
 ```bash
 git clone https://github.com/everfacture/whisper-puma.git
 cd whisper-puma
-pip install -r src/backend/requirements.txt
+python3 -m pip install --user -r src/backend/requirements.txt
 ./scripts/build_app.sh
 open build/WhisperPuma.app
 ```
@@ -52,8 +54,9 @@ Fn Hold
   -> stream to local backend (/stream)
   -> rolling partial decode (UX feedback)
   -> full-final decode (accuracy-first)
+  -> local punctuation restoration model (audio + text)
   -> deterministic format rules
-  -> optional bounded local polish (<=250ms)
+  -> optional bounded local polish (adaptive timeout)
   -> direct typing
   -> clipboard fallback (if needed)
 ```
@@ -62,7 +65,7 @@ Fn Hold
 
 - `Hotkey + Session Control`: stable press/release handling with Fn hold-only policy.
 - `Transcription Engine`: `whisper-large-v3-mlx` primary, turbo rescue fallback only on empty final output.
-- `Formatting`: spoken command parser plus optional bounded local LLM cleanup.
+- `Formatting`: speech-aware backend punctuation restoration, spoken command parser, plus optional bounded local LLM cleanup.
 - `Insertion`: direct typing first with safe clipboard preservation fallback.
 - `History + Metrics`: searchable history UI and latency badge (`last / p50 / p95`).
 
@@ -78,6 +81,7 @@ Fn Hold
 - Empty transcript: verify mic permission and inspect `~/.whisper_puma_backend.log`.
 - No paste: verify Accessibility permission; fallback copy still works.
 - Fn behavior unexpected: Fn is intentionally hold-only in v1.2.0.
+- First run slower than later runs: expected while local models warm up.
 
 ## Docs
 
